@@ -30,8 +30,9 @@ RUN apk add linux-headers build-base go git && \
     sed -i 's|\[\[ $proto == -4 \]\] && cmd sysctl -q net\.ipv4\.conf\.all\.src_valid_mark=1|[[ $proto == -4 ]] \&\& [[ $(sysctl -n net.ipv4.conf.all.src_valid_mark) != 1 ]] \&\& cmd sysctl -q net.ipv4.conf.all.src_valid_mark=1|' ./wg-quick/linux.bash
 
 # Build ambient-caps
-COPY docker/ambient-caps.c ./
-RUN cc -O2 -Wall -Wextra -Werror -static -o ambient-caps ambient-caps.c
+COPY docker/ambient-caps ./ambient-caps-src
+RUN cd ambient-caps-src && \
+    CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o /app/ambient-caps .
 
 FROM docker.io/library/node:krypton-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS build-libsql
 WORKDIR /app
